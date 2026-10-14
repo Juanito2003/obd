@@ -61,9 +61,24 @@ python escaner_obd.py --puerto /dev/ttyUSB0
 # Una lectura por segundo, o una sola lectura y salir
 python escaner_obd.py --intervalo 1
 python escaner_obd.py --una-vez
+
+# Guardar cada lectura en un CSV (por ejemplo, para grabar un trayecto)
+python escaner_obd.py --csv viaje.csv
 ```
 
 Para pararlo, pulsa `Ctrl+C`.
+
+### Grabar un trayecto en CSV
+
+Con `--csv RUTA`, cada lectura se añade como una fila al archivo; si no existe, se crea con la cabecera:
+
+```
+fecha_hora,rpm,throttle,presion,temp_refrigerante,fallas
+2026-10-15T08:30:02,812.0,14.1,33,88,
+2026-10-15T08:30:04,2450.0,38.0,71,90,
+```
+
+La columna `fallas` junta los avisos de esa lectura separados por ` | `. Se abre en LibreOffice Calc o en Excel (*Datos → Desde texto/CSV*, separador coma).
 
 ## Tests
 
