@@ -2,7 +2,7 @@
 
 Lee RPM, posición del acelerador (TPS), presión del colector (MAP) y
 temperatura del refrigerante, y avisa de lecturas que apuntan a un
-sensor TPS o MAP defectuoso.
+sensor TPS o MAP defectuoso o a un motor que se calienta de más.
 
 Uso:
     python escaner_obd.py                  # detecta el puerto automáticamente
@@ -21,6 +21,7 @@ RPM_RALENTI_MAX = 1100        # rpm por debajo de las cuales se considera ralent
 TPS_RALENTI_MAX = 20          # % de acelerador para considerar el pedal suelto (muchos
                               # coches marcan 10-20 % con la mariposa cerrada)
 LECTURAS_TPS_100_PARA_FALLA = 3  # lecturas seguidas al 100 % para considerarlo constante
+UMBRAL_TEMP_REFRIGERANTE = 105  # °C (lo normal en marcha es 85-100 °C)
 
 
 class DetectorFallas:
@@ -39,6 +40,12 @@ class DetectorFallas:
         rpm = valores.get("rpm")
         tps = valores.get("throttle")
         presion = valores.get("presion")
+        temp = valores.get("temp_refrigerante")
+
+        # Temperatura: el sobrecalentamiento se avisa aunque falte la lectura
+        # de RPM, porque no depende de si el motor está encendido.
+        if temp is not None and temp > UMBRAL_TEMP_REFRIGERANTE:
+            fallas.append(f"AVISO TEMPERATURA: refrigerante a {temp} °C")
 
         # Sin RPM no sabemos si el motor está encendido: no se evalúa nada
         # que dependa de ello, para no dar falsos positivos.

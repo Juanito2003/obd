@@ -71,3 +71,22 @@ def test_parser_valores_por_defecto():
 def test_parser_con_opciones():
     args = crear_parser().parse_args(["--puerto", "COM3", "--intervalo", "0.5", "--una-vez"])
     assert args.puerto == "COM3" and args.intervalo == 0.5 and args.una_vez
+
+
+def test_temperatura_normal_sin_aviso():
+    assert DetectorFallas().analizar(lectura(temp=90.0)) == []
+
+
+def test_temperatura_en_el_limite_sin_aviso():
+    assert DetectorFallas().analizar(lectura(temp=105.0)) == []
+
+
+def test_sobrecalentamiento_avisa():
+    fallas = DetectorFallas().analizar(lectura(temp=110.0))
+    assert fallas == ["AVISO TEMPERATURA: refrigerante a 110.0 °C"]
+
+
+def test_sobrecalentamiento_avisa_aunque_falte_rpm():
+    valores = {"rpm": None, "throttle": None, "presion": None, "temp_refrigerante": 112.0}
+    fallas = DetectorFallas().analizar(valores)
+    assert len(fallas) == 1 and fallas[0].startswith("AVISO TEMPERATURA")
