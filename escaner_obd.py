@@ -8,10 +8,14 @@ Uso:
     python escaner_obd.py                  # detecta el puerto automáticamente
     python escaner_obd.py --puerto COM3    # Windows
     python escaner_obd.py --puerto /dev/ttyUSB0 --intervalo 1
+    python escaner_obd.py --csv viaje.csv  # guarda cada lectura en un CSV
 """
 
 import argparse
+import csv
+import os
 import time
+from datetime import datetime
 
 # Umbrales de detección
 UMBRAL_PRESION_APAGADO = 95   # kPa (valor normal con motor apagado: ~100 kPa)
@@ -142,6 +146,23 @@ def mostrar(valores, fallas):
     print("\n" + "-" * 50)
 
 
+COLUMNAS_CSV = ["fecha_hora", "rpm", "throttle", "presion", "temp_refrigerante", "fallas"]
+
+
+def guardar_csv(ruta, valores, fallas, ahora=None):
+    """Añade una lectura al final del CSV; escribe la cabecera si el archivo es nuevo."""
+    nuevo = not os.path.exists(ruta) or os.path.getsize(ruta) == 0
+    ahora = ahora or datetime.now()
+    fila = [ahora.isoformat(timespec="seconds")]
+    fila += ["" if valores.get(c) is None else valores[c] for c in COLUMNAS_CSV[1:5]]
+    fila.append(" | ".join(fallas))
+    with open(ruta, "a", newline="", encoding="utf-8") as f:
+        escritor = csv.writer(f)
+        if nuevo:
+            escritor.writerow(COLUMNAS_CSV)
+        escritor.writerow(fila)
+
+
 def crear_parser():
     parser = argparse.ArgumentParser(
         description="Escáner OBD-II en tiempo real con un adaptador ELM327."
@@ -162,6 +183,11 @@ def crear_parser():
         action="store_true",
         help="hace una sola lectura y termina",
     )
+    parser.add_argument(
+        "--csv",
+        metavar="RUTA",
+        help="guarda cada lectura en un archivo CSV (se añade al final si ya existe)",
+    )
     return parser
 
 
@@ -176,7 +202,10 @@ def main(argv=None):
     try:
         while True:
             valores = leer_parametros(conexion)
-            mostrar(valores, detector.analizar(valores))
+            fallas = detector.analizar(valores)
+            mostrar(valores, fallas)
+            if args.csv:
+                guardar_csv(args.csv, valores, fallas)
             if args.una_vez:
                 break
             time.sleep(args.intervalo)
