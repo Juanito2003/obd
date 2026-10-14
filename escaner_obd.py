@@ -9,6 +9,7 @@ Uso:
     python escaner_obd.py --puerto COM3    # Windows
     python escaner_obd.py --puerto /dev/ttyUSB0 --intervalo 1
     python escaner_obd.py --csv viaje.csv  # guarda cada lectura en un CSV
+    python escaner_obd.py --dtc            # lee los códigos de avería y sale
 """
 
 import argparse
@@ -153,6 +154,26 @@ def mostrar(valores, fallas):
     print("\n" + "-" * 50)
 
 
+def leer_dtc(connection):
+    """Devuelve la lista de códigos de avería (codigo, descripcion) guardados en la centralita."""
+    import obd
+
+    respuesta = connection.query(obd.commands.GET_DTC)
+    if respuesta.is_null():
+        return []
+    return list(respuesta.value)
+
+
+def formatear_dtc(codigos):
+    """Texto a mostrar para una lista de códigos de avería (separado para poder probarlo sin coche)."""
+    if not codigos:
+        return "✅ Sin códigos de avería"
+    lineas = [f"⚠️ {len(codigos)} código(s) de avería:"]
+    for codigo, descripcion in codigos:
+        lineas.append(f"- {codigo}: {descripcion or '(sin descripción)'}")
+    return "\n".join(lineas)
+
+
 COLUMNAS_CSV = ["fecha_hora", "rpm", "throttle", "presion", "temp_refrigerante", "fallas"]
 
 
@@ -195,6 +216,11 @@ def crear_parser():
         metavar="RUTA",
         help="guarda cada lectura en un archivo CSV (se añade al final si ya existe)",
     )
+    parser.add_argument(
+        "--dtc",
+        action="store_true",
+        help="lee los códigos de avería guardados en la centralita y termina",
+    )
     return parser
 
 
@@ -207,6 +233,10 @@ def main(argv=None):
 
     detector = DetectorFallas()
     try:
+        if args.dtc:
+            print(formatear_dtc(leer_dtc(conexion)))
+            return 0
+
         while True:
             valores = leer_parametros(conexion)
             fallas = detector.analizar(valores)
