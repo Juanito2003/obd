@@ -2,7 +2,7 @@
 
 [![Tests](https://github.com/Juanito2003/obd/actions/workflows/tests.yml/badge.svg)](https://github.com/Juanito2003/obd/actions/workflows/tests.yml)
 
-Lee en tiempo real los datos del coche a través de un adaptador **ELM327** (USB o Bluetooth) y avisa cuando las lecturas apuntan a un sensor **TPS** (posición del acelerador) o **MAP** (presión del colector) defectuoso.
+Lee en tiempo real los datos del coche a través de un adaptador **ELM327** (USB o Bluetooth) y avisa cuando las lecturas apuntan a un sensor **TPS** (posición del acelerador) o **MAP** (presión del colector) defectuoso, o cuando el motor se calienta de más.
 
 ```
 ✅ Conectado al adaptador OBD2 en /dev/ttyUSB0
@@ -34,6 +34,7 @@ TEMP_REFRIGERANTE: 88
 | TPS al 100 % constante | Acelerador al 100 % durante 3 lecturas seguidas con el motor en marcha (un acelerón puntual no cuenta) |
 | MAP con motor apagado | Presión por debajo de 95 kPa con el motor parado (debería estar cerca de la atmosférica, ~100 kPa) |
 | MAP alto al ralentí | Presión por encima de 50 kPa al ralentí y sin pisar el acelerador |
+| Sobrecalentamiento | Refrigerante por encima de 105 °C (se avisa aunque no llegue la lectura de RPM) |
 
 Los umbrales están al principio de `escaner_obd.py` y se pueden ajustar. Están pensados para motores atmosféricos: en un turbo la presión del colector se comporta distinto. Los avisos son orientativos y no sustituyen a una diagnosis en el taller.
 
