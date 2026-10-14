@@ -63,9 +63,24 @@ python escaner_obd.py --una-vez
 
 # Guardar cada lectura en un CSV (por ejemplo, para grabar un trayecto)
 python escaner_obd.py --csv viaje.csv
+
+# Leer los códigos de avería guardados en la centralita y salir
+python escaner_obd.py --dtc
 ```
 
 Para pararlo, pulsa `Ctrl+C`.
+
+### Códigos de avería (DTC)
+
+Con `--dtc`, el escáner lee los códigos de avería guardados en la centralita (los `P0xxx`, `C0xxx`...) con su descripción y termina:
+
+```
+⚠️ 2 código(s) de avería:
+- P0401: Exhaust Gas Recirculation Flow Insufficient Detected
+- P0300: Random/Multiple Cylinder Misfire Detected
+```
+
+Las descripciones vienen de la librería python-OBD y están en inglés. Los códigos propios de cada fabricante pueden salir sin descripción.
 
 ### Grabar un trayecto en CSV
 
